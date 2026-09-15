@@ -30,7 +30,7 @@
 
 void setup() {
   Serial.begin(115200);
-  pinMode(LED_TV_PIN, OUTPUT);
+  //pinMode(LED_TV_PIN, OUTPUT);
 
   pinMode(SWITCH_DORMITORIO, INPUT_PULLUP);
   pinMode(SWITCH_COCINA, INPUT_PULLUP);
@@ -76,7 +76,7 @@ void loop() {
   int switchSala = digitalRead(SWITCH_SALA);
   Serial.println(switchSala? "Luz de sala encendido":"Sala apagado");
 
-  // monitorización de consumo eléctrico de la baño
+  // monitorización de consumo eléctrico del baño
   int switchBanio = digitalRead(SWITCH_BANIO);
   Serial.println(switchBanio? "Luz de baño encendido":"Baño apagado");
   delay(500);
