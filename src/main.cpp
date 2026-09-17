@@ -1,3 +1,4 @@
+#include <DHT.h>
 #include <Arduino.h>
 
 // configuración para tv
@@ -17,21 +18,30 @@
 #define LED_FREEZER_PIN 27
 
 // configuración interruptor dormitorio
-#define SWITCH_DORMITORIO 26
+#define SWITCH_DORMITORIO 33
 
 // configuración interruptor cocina
-#define SWITCH_COCINA 25
+#define SWITCH_COCINA 32
 
 // configuración interruptor sala
-#define SWITCH_SALA 33
+#define SWITCH_SALA 35
 
 // configuración interruptor baño
-#define SWITCH_BANIO 32
+#define SWITCH_BANIO 34
+
+// configuración pin dht
+#define DHT_PIN 25
+
+// configuración pin DHT22
+constexpr char DHTTYPE = DHT22;
+DHT dht(DHT_PIN,DHTTYPE);
 
 const int LUZ_W = 12;
 int totalConsumo = 0;
+
 void setup() {
   Serial.begin(115200);
+  dht.begin();
 
   // asignando los switchs a los pines
   pinMode(SWITCH_DORMITORIO, INPUT_PULLUP);
@@ -90,6 +100,15 @@ void loop() {
   totalConsumo = totalConsumo + ledTV + ledLavadora + ledRadio + ledFreezer + luzDormitorio + luzSala + luzCocina + luzBanio;
   float consumoEnKW = static_cast<float>(totalConsumo) / 1000;
   Serial.println("Consumo por segundo en kW: "+String(consumoEnKW)); // para totalConsumo 372 sale 0.37
+
+  float temperatura = dht.readTemperature();
+  if(!isnan(temperatura)){
+    Serial.print("Temperatura actual:");
+    Serial.println(temperatura);
+    if (temperatura > 50){
+      Serial.println("Envío de alerta al telegram");
+    }
+  }
 
   delay(1000);
 }
