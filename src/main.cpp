@@ -1,5 +1,7 @@
 #include <DHT.h>
 #include <Arduino.h>
+#include <Wire.h>
+#include <U8g2lib.h>
 
 // configuración para tv
 #define TV_PIN 4
@@ -39,6 +41,22 @@ DHT dht(DHT_PIN,DHTTYPE);
 const int LUZ_W = 12;
 int totalConsumo = 0;
 
+// Grove OLED SH1107
+// 128 x 128 píxeles, I2C
+U8G2_SH1107_128X128_F_HW_I2C oled(U8G2_R0, U8X8_PIN_NONE);
+
+const char* textos[] = {
+  "Lista de alumnos",
+  "----------------",
+  "1. Juan Perez",
+  "2. Maria Lopez",
+  "3. Carlos Gomez",
+  "4. Ana Flores",
+  "5. Pedro Ramirez"
+};
+
+const int cantidadTextos = sizeof(textos) / sizeof(textos[0]);
+
 void setup() {
   Serial.begin(115200);
   dht.begin();
@@ -48,6 +66,27 @@ void setup() {
   pinMode(SWITCH_COCINA, INPUT_PULLUP);
   pinMode(SWITCH_SALA, INPUT_PULLUP);
   pinMode(SWITCH_BANIO, INPUT_PULLUP);
+
+  Wire.begin(21, 22);
+
+  oled.begin();
+  oled.setFont(u8g2_font_6x10_tf);
+
+  oled.clearBuffer();
+
+  int y = 12;
+
+  for (int i = 0; i < cantidadTextos; i++) {
+    oled.drawStr(0, y, textos[i]);
+    y += 12;
+
+    // Evitar salir de la pantalla
+    if (y > 124) {
+      break;
+    }
+  }
+
+  oled.sendBuffer();
 }
 
 void loop() {

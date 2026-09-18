@@ -77,7 +77,14 @@
     { "type": "wokwi-slide-switch", "id": "sw2", "top": 148.4, "left": 214.3, "attrs": {} },
     { "type": "wokwi-slide-switch", "id": "sw3", "top": 148.4, "left": 271.9, "attrs": {} },
     { "type": "wokwi-slide-switch", "id": "sw4", "top": 148.4, "left": 329.5, "attrs": {} },
-    { "type": "wokwi-dht22", "id": "dht1", "top": 29.1, "left": 484.2, "attrs": {} }
+    { "type": "wokwi-dht22", "id": "dht1", "top": 29.1, "left": 484.2, "attrs": {} },
+    {
+      "type": "board-grove-oled-sh1107",
+      "id": "oled1",
+      "top": -77.03,
+      "left": -217.7,
+      "attrs": {}
+    }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
@@ -85,7 +92,7 @@
     [ "esp:GND.2", "bb1:tn.1", "black", [ "v0" ] ],
     [ "pot1:GND", "bb1:tn.2", "black", [ "v0" ] ],
     [ "pot1:VCC", "bb1:tp.4", "red", [ "v0" ] ],
-    [ "bb1:tp.1", "esp:3V3", "red", [ "v-28.5", "h-171.35" ] ],
+    [ "bb1:tp.1", "esp:3V3", "red", [ "v-18.9", "h-171.35" ] ],
     [ "pot2:GND", "pot1:GND", "black", [ "v19.2", "h-86.4" ] ],
     [ "pot3:GND", "pot2:GND", "black", [ "v19.2", "h-86.4" ] ],
     [ "pot4:GND", "pot3:GND", "black", [ "v19.2", "h-86.4" ] ],
@@ -136,7 +143,11 @@
     [ "bb1:16b.i", "esp:35", "blue", [ "v57.6", "h-268.8", "v-134.4" ] ],
     [ "bb1:10b.i", "esp:32", "green", [ "v48", "h-220.8", "v-115.2" ] ],
     [ "bb1:4b.i", "esp:33", "red", [ "v38.4", "h-172.8", "v-96" ] ],
-    [ "dht1:SDA", "esp:25", "violet", [ "v9.6", "h38.5", "v-220.8", "h-566.4", "v211.2" ] ]
+    [ "dht1:SDA", "esp:25", "violet", [ "v9.6", "h38.5", "v-220.8", "h-566.4", "v211.2" ] ],
+    [ "oled1:VCC", "esp:3V3", "red", [ "h0" ] ],
+    [ "oled1:GND.1", "esp:GND.1", "black", [ "h19.2", "v211.2" ] ],
+    [ "oled1:SCL.1", "esp:22", "green", [ "h144", "v57.6" ] ],
+    [ "oled1:SDA", "esp:21", "blue", [ "h153.6", "v96" ] ]
   ],
   "dependencies": {}
 }
