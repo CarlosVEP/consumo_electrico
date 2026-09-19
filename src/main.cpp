@@ -1,5 +1,5 @@
-#include <DHT.h>
 #include <Arduino.h>
+#include <DHT.h>
 #include <Wire.h>
 #include <U8g2lib.h>
 
@@ -45,17 +45,10 @@ int totalConsumo = 0;
 // 128 x 128 píxeles, I2C
 U8G2_SH1107_128X128_F_HW_I2C oled(U8G2_R0, U8X8_PIN_NONE);
 
-const char* textos[] = {
-  "Lista de alumnos",
-  "----------------",
-  "1. Juan Perez",
-  "2. Maria Lopez",
-  "3. Carlos Gomez",
-  "4. Ana Flores",
-  "5. Pedro Ramirez"
-};
+std::string mensajes[9];
 
-const int cantidadTextos = sizeof(textos) / sizeof(textos[0]);
+const int cantidadTextos = sizeof(mensajes) / sizeof(mensajes[0]);
+int y = 12;
 
 void setup() {
   Serial.begin(115200);
@@ -73,20 +66,6 @@ void setup() {
   oled.setFont(u8g2_font_6x10_tf);
 
   oled.clearBuffer();
-
-  int y = 12;
-
-  for (int i = 0; i < cantidadTextos; i++) {
-    oled.drawStr(0, y, textos[i]);
-    y += 12;
-
-    // Evitar salir de la pantalla
-    if (y > 124) {
-      break;
-    }
-  }
-
-  oled.sendBuffer();
 }
 
 void loop() {
@@ -96,58 +75,86 @@ void loop() {
   uint32_t radio = analogRead(RADIO_PIN);
   uint32_t freezer = analogRead(FREEZER_PIN);
 
-  // monitorización de consumo eléctrico de la televicion
-  Serial.println("consumo eléctrico televisión: "+String(tv));
+  // monitorización de consumo de la televicion
+  Serial.println("consumo televisión: "+String(tv));
+  mensajes[0] = "consumo tv: "+std::to_string(tv);
   int ledTV = map(tv, 0, 4095, 0, 255);
   analogWrite(LED_TV_PIN, ledTV);
   
-  // monitorización de consumo eléctrico de la lavadora
-  Serial.println("consumo eléctrico lavadora: "+String(lavadora));
+  // monitorización de consumo de la lavadora
+  Serial.println("consumo lavadora: "+String(lavadora));
+  mensajes[1] = "consumo lavadora: "+std::to_string(lavadora);
   int ledLavadora = map(lavadora, 0, 4095, 0, 255);
   analogWrite(LED_LAVADORA_PIN, ledLavadora);
 
-  // monitorización de consumo eléctrico de la radio
-  Serial.println("consumo eléctrico radio: "+String(radio));
+  // monitorización de consumo de la radio
+  Serial.println("consumo radio: "+String(radio));
+  mensajes[2] = "consumo radio: "+std::to_string(radio);
   int ledRadio = map(radio, 0, 4095, 0, 255);
   analogWrite(LED_RADIO_PIN, ledRadio);
   
-  // monitorización de consumo eléctrico de la freezer
-  Serial.println("consumo eléctrico freezer: "+String(freezer));
+  // monitorización de consumo de la freezer
+  Serial.println("consumo freezer: "+String(freezer));
+  mensajes[3] = "consumo freezer: "+std::to_string(freezer);
   int ledFreezer = map(freezer, 0, 4095, 0, 255);
   analogWrite(LED_FREEZER_PIN, ledFreezer);
 
-  // monitorización de consumo eléctrico de la dormitorio
+  // monitorización de consumo de la dormitorio
   int switchDormitorio = digitalRead(SWITCH_DORMITORIO);
   int luzDormitorio = switchDormitorio ? LUZ_W:0;
-  Serial.println(switchDormitorio? "Luz de dormitorio encendido":"Dormitorio apagado");
+  Serial.println(switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado");
+  mensajes[4] = switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado";
 
   // monitorización de consumo eléctrico de la cocina
   int switchCocina = digitalRead(SWITCH_COCINA);
   int luzCocina = switchCocina? LUZ_W:0;
-  Serial.println(switchCocina? "Luz de cocina encendido":"Cocina apagada");
+  Serial.println(switchCocina? "Luz cocina encendida":"Cocina apagada");
+  mensajes[5] = switchCocina? "Luz cocina encendida":"Cocina apagada";
   
   // monitorización de consumo eléctrico de la sala
   int switchSala = digitalRead(SWITCH_SALA);
   int luzSala = switchSala? LUZ_W:0;
-  Serial.println(switchSala? "Luz de sala encendida":"Sala apagado");
+  Serial.println(switchSala? "Luz sala encendida":"Sala apagada");
+  mensajes[6] = switchSala? "Luz sala encendida":"Sala apagada";
 
   // monitorización de consumo eléctrico del baño
   int switchBanio = digitalRead(SWITCH_BANIO);
   int luzBanio = switchBanio? LUZ_W:0;
-  Serial.println(switchBanio? "Luz de baño encendido":"Baño apagado");
+  Serial.println(switchBanio? "Luz baño encendido":"Baño apagado");
+  mensajes[7] = switchBanio? "Luz baño encendido":"Baño apagado";
 
   totalConsumo = totalConsumo + ledTV + ledLavadora + ledRadio + ledFreezer + luzDormitorio + luzSala + luzCocina + luzBanio;
   float consumoEnKW = static_cast<float>(totalConsumo) / 1000;
-  Serial.println("Consumo por segundo en kW: "+String(consumoEnKW)); // para totalConsumo 372 sale 0.37
+  Serial.println("Consumo en kW/s: "+String(consumoEnKW)); // para totalConsumo 372 sale 0.37
+  mensajes[7] = "Consumo en kW/s: " + std::to_string(consumoEnKW);
 
   float temperatura = dht.readTemperature();
   if(!isnan(temperatura)){
-    Serial.print("Temperatura actual:");
+    Serial.print("Temperatura: ");
     Serial.println(temperatura);
+    mensajes[8] = "Temperatura: " + std::to_string(temperatura);
     if (temperatura > 50){
       Serial.println("Envío de alerta al telegram");
     }
   }
 
+  // recorrido del arreglo para mostrarlo en el oled
+  for (int i = 0; i < cantidadTextos; i++) {
+    oled.drawStr(0, y, mensajes[i].c_str());
+    y += 12;
+
+    // Evitar salir de la pantalla
+    if (y > 124) {
+      break;
+    }
+  }
+
+  oled.sendBuffer();
+
   delay(1000);
+
+  // limpieza del oled
+  oled.clearBuffer();
+  // reinicio de la posición y
+  y = 12;
 }
