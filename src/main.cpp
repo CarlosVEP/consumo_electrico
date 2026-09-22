@@ -2,6 +2,7 @@
 #include <DHT.h>
 #include <Wire.h>
 #include <U8g2lib.h>
+#include <WiFi.h>
 
 // configuración para tv
 #define TV_PIN 34
@@ -50,8 +51,21 @@ std::string mensajes[10];
 const int cantidadTextos = sizeof(mensajes) / sizeof(mensajes[0]);
 int y = 12;
 
+// Configuración de wifi
+#define ssid "Wokwi-GUEST"
+#define password ""
+
 void setup() {
   Serial.begin(115200);
+
+  // conectar wifi
+  Serial.print("Conectando a wifi ...");
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED){
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConectado al wifi");
   dht.begin();
 
   // asignando los switchs a los pines
