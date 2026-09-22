@@ -4,32 +4,32 @@
 #include <U8g2lib.h>
 
 // configuración para tv
-#define TV_PIN 4
+#define TV_PIN 34
 #define LED_TV_PIN 13
 
 // configuración para lavadora
-#define LAVADORA_PIN 0
+#define LAVADORA_PIN 35
 #define LED_LAVADORA_PIN 12
 
 // configuración para radio
-#define RADIO_PIN 2
+#define RADIO_PIN 32
 #define LED_RADIO_PIN 14
 
 // configuración para freezer
-#define FREEZER_PIN 15
+#define FREEZER_PIN 33
 #define LED_FREEZER_PIN 27
 
 // configuración interruptor dormitorio
-#define SWITCH_DORMITORIO 33
+#define SWITCH_DORMITORIO 4
 
 // configuración interruptor cocina
-#define SWITCH_COCINA 32
+#define SWITCH_COCINA 0
 
 // configuración interruptor sala
-#define SWITCH_SALA 35
+#define SWITCH_SALA 2
 
 // configuración interruptor baño
-#define SWITCH_BANIO 34
+#define SWITCH_BANIO 15
 
 // configuración pin dht
 #define DHT_PIN 25
@@ -45,7 +45,7 @@ int totalConsumo = 0;
 // 128 x 128 píxeles, I2C
 U8G2_SH1107_128X128_F_HW_I2C oled(U8G2_R0, U8X8_PIN_NONE);
 
-std::string mensajes[9];
+std::string mensajes[10];
 
 const int cantidadTextos = sizeof(mensajes) / sizeof(mensajes[0]);
 int y = 12;
@@ -126,13 +126,13 @@ void loop() {
   totalConsumo = totalConsumo + ledTV + ledLavadora + ledRadio + ledFreezer + luzDormitorio + luzSala + luzCocina + luzBanio;
   float consumoEnKW = static_cast<float>(totalConsumo) / 1000;
   Serial.println("Consumo en kW/s: "+String(consumoEnKW)); // para totalConsumo 372 sale 0.37
-  mensajes[7] = "Consumo en kW/s: " + std::to_string(consumoEnKW);
+  mensajes[8] = "Consumo en kW/s: " + std::to_string(consumoEnKW);
 
   float temperatura = dht.readTemperature();
   if(!isnan(temperatura)){
     Serial.print("Temperatura: ");
     Serial.println(temperatura);
-    mensajes[8] = "Temperatura: " + std::to_string(temperatura);
+    mensajes[9] = "Temperatura: " + std::to_string(temperatura);
     if (temperatura > 50){
       Serial.println("Envío de alerta al telegram");
     }
