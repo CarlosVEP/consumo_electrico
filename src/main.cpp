@@ -3,6 +3,9 @@
 #include <Wire.h>
 #include <U8g2lib.h>
 #include <WiFi.h>
+#include <ArduinoJson.h>
+#include <UniversalTelegramBot.h>
+#include <WiFiClientSecure.h>
 
 // configuración para tv
 #define TV_PIN 34
@@ -55,12 +58,27 @@ int y = 12;
 #define ssid "Wokwi-GUEST"
 #define password ""
 
+// Credenciales Telegram
+const String BOT_TOKEN = "8801456979:AAFQwJqB0voh62bCDstGjjoOVFPHdgjzQ1M";
+const String CHAT_ID = "519918100";
+
+const int BOT_REQUEST_DELAY = 1000;
+String msjBot;
+
+WiFiClientSecure client;
+UniversalTelegramBot bot(BOT_TOKEN, client);
+
+bool releON = true;
+
 void setup() {
   Serial.begin(115200);
 
   // conectar wifi
   Serial.print("Conectando a wifi ...");
   WiFi.begin(ssid, password);
+
+  client.setCACert(TELEGRAM_CERTIFICATE_ROOT);
+  
   while (WiFi.status() != WL_CONNECTED){
     delay(500);
     Serial.print(".");
@@ -148,7 +166,13 @@ void loop() {
     Serial.println(temperatura);
     mensajes[9] = "Temperatura: " + std::to_string(temperatura);
     if (temperatura > 50){
-      Serial.println("Envío de alerta al telegram");
+      if (releON){
+        Serial.println("Envío de alerta al telegram");
+        String keyboardJson = "[[{\"text\":\"Apagar relé\",\"callback_data\":\"APAGAR_RELE\"}]]";
+        bot.sendMessageWithInlineKeyboard(CHAT_ID, "🚨 Temperatura inusualmente alta", "Markdown", keyboardJson, 0);
+        releON = false;
+      }
+      
     }
   }
 
