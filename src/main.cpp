@@ -63,10 +63,11 @@ const String BOT_TOKEN = "8801456979:AAFQwJqB0voh62bCDstGjjoOVFPHdgjzQ1M";
 const String CHAT_ID = "519918100";
 
 const int BOT_REQUEST_DELAY = 1000;
+unsigned long lastTimeBotRan;
 String msjBot;
-
 WiFiClientSecure client;
 UniversalTelegramBot bot(BOT_TOKEN, client);
+bool msjBotEnviado = false;
 
 bool releON = true;
 
@@ -100,6 +101,62 @@ void setup() {
   oled.clearBuffer();
 }
 
+// problema con type callback_query solo acepta type message
+void handleNewMessages(int numNewMessages){
+  // for(int i = 0; i < numNewMessages; i++){
+
+  //     Serial.println("===== MENSAJE =====");
+
+  //     Serial.print("Tipo: ");
+  //     Serial.println(bot.messages[i].type);
+
+  //     Serial.print("Texto: ");
+  //     Serial.println(bot.messages[i].text);
+
+  //     Serial.print("Chat ID: ");
+  //     Serial.println(bot.messages[i].chat_id);
+
+  //     Serial.println("===================");
+  // }
+  for(int i=0; i<numNewMessages; i++){
+    String chat_id = String(bot.messages[i].chat_id);
+    String text = bot.messages[i].text;
+    String type = bot.messages[i].type;
+    //Verificación de que el mensaje proviene de un boton(Callback Query)
+    if(type == "callback_query"){
+      if(text == "APAGAR_RELE"){
+        releON = false;
+        bot.sendMessage(chat_id, "Se apagó el relé", "");
+      }
+    }
+  }
+  // for(int i = 0; i < numNewMessages; i++){
+  //   String chat_id = String(bot.messages[i].chat_id);
+  //   String text = bot.messages[i].text;
+  //   String type = bot.messages[i].type;
+
+  //   Serial.println("===== MENSAJE / ACCIÓN =====");
+  //   Serial.print("Tipo: "); Serial.println(type);
+  //   Serial.print("Texto: "); Serial.println(text);
+  //   Serial.println("============================");
+
+  //   // Capturar la respuesta del botón inline
+  //   if(type == "callback_query"){
+  //     if(text == "APAGAR_RELE"){
+  //       releON = false;
+  //       bot.sendMessage(chat_id, "Se apago el rele", "");
+  //     }
+  //   }
+    
+  //   // Capturar mensajes de texto tradicionales (opcional)
+  //   if(type == "message"){
+  //     if(text == "Hola"){
+  //       bot.sendMessage(chat_id, "Hola, sistema activo", "");
+  //     }
+  //   }
+  // }
+}
+
 void loop() {
   // obteniendo valores de los potenciómetros
   uint32_t tv = analogRead(TV_PIN);
@@ -108,25 +165,25 @@ void loop() {
   uint32_t freezer = analogRead(FREEZER_PIN);
 
   // monitorización de consumo de la televicion
-  Serial.println("consumo televisión: "+String(tv));
+  //Serial.println("consumo televisión: "+String(tv));
   mensajes[0] = "consumo tv: "+std::to_string(tv);
   int ledTV = map(tv, 0, 4095, 0, 255);
   analogWrite(LED_TV_PIN, ledTV);
   
   // monitorización de consumo de la lavadora
-  Serial.println("consumo lavadora: "+String(lavadora));
+  //Serial.println("consumo lavadora: "+String(lavadora));
   mensajes[1] = "consumo lavadora: "+std::to_string(lavadora);
   int ledLavadora = map(lavadora, 0, 4095, 0, 255);
   analogWrite(LED_LAVADORA_PIN, ledLavadora);
 
   // monitorización de consumo de la radio
-  Serial.println("consumo radio: "+String(radio));
+  //Serial.println("consumo radio: "+String(radio));
   mensajes[2] = "consumo radio: "+std::to_string(radio);
   int ledRadio = map(radio, 0, 4095, 0, 255);
   analogWrite(LED_RADIO_PIN, ledRadio);
   
   // monitorización de consumo de la freezer
-  Serial.println("consumo freezer: "+String(freezer));
+  //Serial.println("consumo freezer: "+String(freezer));
   mensajes[3] = "consumo freezer: "+std::to_string(freezer);
   int ledFreezer = map(freezer, 0, 4095, 0, 255);
   analogWrite(LED_FREEZER_PIN, ledFreezer);
@@ -134,25 +191,25 @@ void loop() {
   // monitorización de consumo de la dormitorio
   int switchDormitorio = digitalRead(SWITCH_DORMITORIO);
   int luzDormitorio = switchDormitorio ? LUZ_W:0;
-  Serial.println(switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado");
+  //Serial.println(switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado");
   mensajes[4] = switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado";
 
   // monitorización de consumo eléctrico de la cocina
   int switchCocina = digitalRead(SWITCH_COCINA);
   int luzCocina = switchCocina? LUZ_W:0;
-  Serial.println(switchCocina? "Luz cocina encendida":"Cocina apagada");
+  //Serial.println(switchCocina? "Luz cocina encendida":"Cocina apagada");
   mensajes[5] = switchCocina? "Luz cocina encendida":"Cocina apagada";
   
   // monitorización de consumo eléctrico de la sala
   int switchSala = digitalRead(SWITCH_SALA);
   int luzSala = switchSala? LUZ_W:0;
-  Serial.println(switchSala? "Luz sala encendida":"Sala apagada");
+  //Serial.println(switchSala? "Luz sala encendida":"Sala apagada");
   mensajes[6] = switchSala? "Luz sala encendida":"Sala apagada";
 
   // monitorización de consumo eléctrico del baño
   int switchBanio = digitalRead(SWITCH_BANIO);
   int luzBanio = switchBanio? LUZ_W:0;
-  Serial.println(switchBanio? "Luz baño encendido":"Baño apagado");
+  //Serial.println(switchBanio? "Luz baño encendido":"Baño apagado");
   mensajes[7] = switchBanio? "Luz baño encendido":"Baño apagado";
 
   totalConsumo = totalConsumo + ledTV + ledLavadora + ledRadio + ledFreezer + luzDormitorio + luzSala + luzCocina + luzBanio;
@@ -166,14 +223,24 @@ void loop() {
     Serial.println(temperatura);
     mensajes[9] = "Temperatura: " + std::to_string(temperatura);
     if (temperatura > 50){
-      if (releON){
+      if (!msjBotEnviado){
         Serial.println("Envío de alerta al telegram");
         String keyboardJson = "[[{\"text\":\"Apagar relé\",\"callback_data\":\"APAGAR_RELE\"}]]";
         bot.sendMessageWithInlineKeyboard(CHAT_ID, "🚨 Temperatura inusualmente alta", "Markdown", keyboardJson, 0);
-        releON = false;
+        msjBotEnviado = true;
+      } else {
+        msjBotEnviado = false;
       }
-      
     }
+  }
+  if(millis() - lastTimeBotRan > BOT_REQUEST_DELAY){
+    int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+    while(numNewMessages){
+      Serial.println("Procesando nuevos mensajes...");
+      handleNewMessages(numNewMessages);
+      numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+    }
+    lastTimeBotRan = millis();
   }
 
   // recorrido del arreglo para mostrarlo en el oled
