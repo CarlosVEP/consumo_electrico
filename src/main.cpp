@@ -52,7 +52,6 @@ U8G2_SH1107_128X128_F_HW_I2C oled(U8G2_R0, U8X8_PIN_NONE);
 std::string mensajes[10];
 
 const int cantidadTextos = sizeof(mensajes) / sizeof(mensajes[0]);
-int y = 12;
 
 // Configuración de wifi
 #define ssid "Wokwi-GUEST"
