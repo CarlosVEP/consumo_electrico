@@ -38,9 +38,12 @@
 // configuración pin dht
 #define DHT_PIN 25
 
-// configuración pin DHT22
 constexpr char DHTTYPE = DHT22;
 DHT dht(DHT_PIN,DHTTYPE);
+
+// configuración OLED
+#define OLED_SDA 21
+#define OLED_SCL 22
 
 const int LUZ_W = 12;
 int totalConsumo = 0;
@@ -58,7 +61,7 @@ const int cantidadTextos = sizeof(mensajes) / sizeof(mensajes[0]);
 #define password ""
 
 // Credenciales Telegram
-const String BOT_TOKEN = "8801456979:AAFQwJqB0voh62bCDstGjjoOVFPHdgjzQ1M";
+const String BOT_TOKEN = "8801456979:AAHI6J0vL3r0kyOSesYZaejQxxz641ylKlk";
 const String CHAT_ID = "519918100";
 
 const unsigned long SENSOR_INTERVAL = 100;
@@ -94,12 +97,12 @@ void setup() {
   dht.begin();
 
   // asignando los switchs a los pines
-  pinMode(SWITCH_DORMITORIO, INPUT_PULLUP);
-  pinMode(SWITCH_COCINA, INPUT_PULLUP);
-  pinMode(SWITCH_SALA, INPUT_PULLUP);
-  pinMode(SWITCH_BANIO, INPUT_PULLUP);
+  pinMode(SWITCH_DORMITORIO, INPUT_PULLDOWN);
+  pinMode(SWITCH_COCINA, INPUT_PULLDOWN);
+  pinMode(SWITCH_SALA, INPUT_PULLDOWN);
+  pinMode(SWITCH_BANIO, INPUT_PULLDOWN);
 
-  Wire.begin(21, 22);
+  Wire.begin(OLED_SDA, OLED_SCL);
 
   oled.begin();
   oled.setFont(u8g2_font_6x10_tf);
@@ -109,21 +112,6 @@ void setup() {
 
 // problema con type callback_query solo acepta type message
 void handleNewMessages(int numNewMessages){
-  // for(int i = 0; i < numNewMessages; i++){
-
-  //     Serial.println("===== MENSAJE =====");
-
-  //     Serial.print("Tipo: ");
-  //     Serial.println(bot.messages[i].type);
-
-  //     Serial.print("Texto: ");
-  //     Serial.println(bot.messages[i].text);
-
-  //     Serial.print("Chat ID: ");
-  //     Serial.println(bot.messages[i].chat_id);
-
-  //     Serial.println("===================");
-  // }
   for(int i=0; i<numNewMessages; i++){
     String chat_id = String(bot.messages[i].chat_id);
     String text = bot.messages[i].text;
@@ -136,31 +124,6 @@ void handleNewMessages(int numNewMessages){
       }
     }
   }
-  // for(int i = 0; i < numNewMessages; i++){
-  //   String chat_id = String(bot.messages[i].chat_id);
-  //   String text = bot.messages[i].text;
-  //   String type = bot.messages[i].type;
-
-  //   Serial.println("===== MENSAJE / ACCIÓN =====");
-  //   Serial.print("Tipo: "); Serial.println(type);
-  //   Serial.print("Texto: "); Serial.println(text);
-  //   Serial.println("============================");
-
-  //   // Capturar la respuesta del botón inline
-  //   if(type == "callback_query"){
-  //     if(text == "APAGAR_RELE"){
-  //       releON = false;
-  //       bot.sendMessage(chat_id, "Se apago el rele", "");
-  //     }
-  //   }
-    
-  //   // Capturar mensajes de texto tradicionales (opcional)
-  //   if(type == "message"){
-  //     if(text == "Hola"){
-  //       bot.sendMessage(chat_id, "Hola, sistema activo", "");
-  //     }
-  //   }
-  // }
 }
 
 void loop() {
@@ -239,10 +202,8 @@ void loop() {
         if (!msjBotEnviado){
           Serial.println("Envío de alerta al telegram");
           String keyboardJson = "[[{\"text\":\"Apagar relé\",\"callback_data\":\"APAGAR_RELE\"}]]";
-          bot.sendMessageWithInlineKeyboard(CHAT_ID, "🚨 Temperatura inusualmente alta", "Markdown", keyboardJson, 0);
+          bot.sendMessageWithInlineKeyboard(CHAT_ID, "🚨 Temperatura inusualmente alta", "", keyboardJson);
           msjBotEnviado = true;
-        } else {
-          msjBotEnviado = false;
         }
       }
     }
