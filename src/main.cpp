@@ -48,8 +48,8 @@ DHT dht(DHT_PIN,DHTTYPE);
 const int LUZ_W = 12;
 int totalConsumo = 0;
 float totalConsumoKW = 0.0;
-const unsigned long T_CONSUMO_INTERVAL = 5000;
-unsigned long lastConsumo = 0;
+// const unsigned long T_CONSUMO_INTERVAL = 5000;
+// unsigned long lastConsumo = 0;
 
 // Grove OLED SH1107
 // 128 x 128 píxeles, I2C
@@ -71,10 +71,13 @@ const unsigned long SENSOR_INTERVAL = 100;
 const unsigned long DHT_INTERVAL = 2000;
 const unsigned long OLED_INTERVAL = 500;
 const unsigned long TELEGRAM_INTERVAL = 1000;
+const unsigned long ADAFRUIT_INTERVAL = 5000;
+
 unsigned long lastSensor = 0;
 unsigned long lastDHT = 0;
 unsigned long lastOLED = 0;
 unsigned long lastTelegram = 0;
+unsigned long lastAdafruit = 0;
 
 String msjBot;
 WiFiClientSecure client;
@@ -100,10 +103,10 @@ void setup() {
   dht.begin();
 
   // asignando los switchs a los pines
-  pinMode(SWITCH_DORMITORIO, INPUT_PULLDOWN);
-  pinMode(SWITCH_COCINA, INPUT_PULLDOWN);
-  pinMode(SWITCH_SALA, INPUT_PULLDOWN);
-  pinMode(SWITCH_BANIO, INPUT_PULLDOWN);
+  pinMode(SWITCH_DORMITORIO, INPUT_PULLUP);
+  pinMode(SWITCH_COCINA, INPUT_PULLUP);
+  pinMode(SWITCH_SALA, INPUT_PULLUP);
+  pinMode(SWITCH_BANIO, INPUT_PULLUP);
 
   Wire.begin(OLED_SDA, OLED_SCL);
 
@@ -166,47 +169,37 @@ void loop() {
   
     // monitorización de consumo de la dormitorio
     int switchDormitorio = digitalRead(SWITCH_DORMITORIO);
-    int luzDormitorio = switchDormitorio ? LUZ_W:0;
+    int luzDormitorio = !switchDormitorio ? LUZ_W:0;
     //Serial.println(switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado");
-    mensajes[4] = switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado";
+    mensajes[4] = !switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado";
   
     // monitorización de consumo eléctrico de la cocina
     int switchCocina = digitalRead(SWITCH_COCINA);
-    int luzCocina = switchCocina? LUZ_W:0;
+    int luzCocina = !switchCocina? LUZ_W:0;
     //Serial.println(switchCocina? "Luz cocina encendida":"Cocina apagada");
-    mensajes[5] = switchCocina? "Luz cocina encendida":"Cocina apagada";
+    mensajes[5] = !switchCocina? "Luz cocina encendida":"Cocina apagada";
     
     // monitorización de consumo eléctrico de la sala
     int switchSala = digitalRead(SWITCH_SALA);
-    int luzSala = switchSala? LUZ_W:0;
+    int luzSala = !switchSala? LUZ_W:0;
     //Serial.println(switchSala? "Luz sala encendida":"Sala apagada");
-    mensajes[6] = switchSala? "Luz sala encendida":"Sala apagada";
+    mensajes[6] = !switchSala? "Luz sala encendida":"Sala apagada";
   
     // monitorización de consumo eléctrico del baño
     int switchBanio = digitalRead(SWITCH_BANIO);
-    int luzBanio = switchBanio? LUZ_W:0;
+    int luzBanio = !switchBanio? LUZ_W:0;
     //Serial.println(switchBanio? "Luz baño encendido":"Baño apagado");
-    mensajes[7] = switchBanio? "Luz baño encendido":"Baño apagado";
+    mensajes[7] = !switchBanio? "Luz baño encendido":"Baño apagado";
+    
     totalConsumo = ledTV + ledLavadora + ledRadio + ledFreezer + luzDormitorio + luzSala + luzCocina + luzBanio;
     totalConsumoKW = static_cast<float>(totalConsumo) / 1000.0;
     mensajes[8] = "Consumo en kW: " + std::to_string(totalConsumoKW);
-    // float consumoEnKW = static_cast<float>(totalConsumo) / 1000.0;
-    // Serial.println("Consumo en kW/s: "+String(consumoEnKW)); // para totalConsumo 372 sale 0.37
-    // mensajes[8] = "Consumo en kW/s: " + std::to_string(consumoEnKW);
   }
-
-  if (tiempoTranscurrido - lastConsumo >= T_CONSUMO_INTERVAL){
-    lastConsumo = tiempoTranscurrido;
-    Serial.print("Enviar totalConsumoKW a Adafruit: ");
-    Serial.println(totalConsumoKW);
-  }  
 
   if (tiempoTranscurrido - lastDHT >= DHT_INTERVAL){
     lastDHT = tiempoTranscurrido;
     float temperatura = dht.readTemperature();
     if(!isnan(temperatura)){
-      Serial.print("Temperatura: ");
-      Serial.println(temperatura);
       mensajes[9] = "Temperatura: " + std::to_string(temperatura);
       if (temperatura > 50){
         if (!msjBotEnviado){
@@ -243,4 +236,19 @@ void loop() {
     }
     oled.sendBuffer();
   }
+
+  if (tiempoTranscurrido - lastAdafruit >= ADAFRUIT_INTERVAL){
+    lastAdafruit = tiempoTranscurrido;
+
+    Serial.println(mensajes[0].c_str());
+    Serial.println(mensajes[1].c_str());
+    Serial.println(mensajes[2].c_str());
+    Serial.println(mensajes[3].c_str());
+    Serial.println(mensajes[4].c_str());
+    Serial.println(mensajes[5].c_str());
+    Serial.println(mensajes[6].c_str());
+    Serial.println(mensajes[7].c_str());
+    Serial.println(mensajes[8].c_str());
+    Serial.println(mensajes[9].c_str());
+  }  
 }
