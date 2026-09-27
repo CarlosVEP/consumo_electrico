@@ -47,6 +47,9 @@ DHT dht(DHT_PIN,DHTTYPE);
 
 const int LUZ_W = 12;
 int totalConsumo = 0;
+float totalConsumoKW = 0.0;
+const unsigned long T_CONSUMO_INTERVAL = 5000;
+unsigned long lastConsumo = 0;
 
 // Grove OLED SH1107
 // 128 x 128 píxeles, I2C
@@ -110,7 +113,6 @@ void setup() {
   oled.clearBuffer();
 }
 
-// problema con type callback_query solo acepta type message
 void handleNewMessages(int numNewMessages){
   for(int i=0; i<numNewMessages; i++){
     String chat_id = String(bot.messages[i].chat_id);
@@ -141,25 +143,25 @@ void loop() {
     // monitorización de consumo de la televicion
     //Serial.println("consumo televisión: "+String(tv));
     mensajes[0] = "consumo tv: "+std::to_string(tv);
-    int ledTV = map(tv, 0, 4095, 0, 255);
+    int ledTV = map(tv, 0, 4095, 0, 150);
     analogWrite(LED_TV_PIN, ledTV);
     
     // monitorización de consumo de la lavadora
     //Serial.println("consumo lavadora: "+String(lavadora));
     mensajes[1] = "consumo lavadora: "+std::to_string(lavadora);
-    int ledLavadora = map(lavadora, 0, 4095, 0, 255);
+    int ledLavadora = map(lavadora, 0, 4095, 0, 800);
     analogWrite(LED_LAVADORA_PIN, ledLavadora);
   
     // monitorización de consumo de la radio
     //Serial.println("consumo radio: "+String(radio));
     mensajes[2] = "consumo radio: "+std::to_string(radio);
-    int ledRadio = map(radio, 0, 4095, 0, 255);
+    int ledRadio = map(radio, 0, 4095, 0, 100);
     analogWrite(LED_RADIO_PIN, ledRadio);
     
     // monitorización de consumo de la freezer
     //Serial.println("consumo freezer: "+String(freezer));
     mensajes[3] = "consumo freezer: "+std::to_string(freezer);
-    int ledFreezer = map(freezer, 0, 4095, 0, 255);
+    int ledFreezer = map(freezer, 0, 4095, 0, 400);
     analogWrite(LED_FREEZER_PIN, ledFreezer);
   
     // monitorización de consumo de la dormitorio
@@ -185,11 +187,19 @@ void loop() {
     int luzBanio = switchBanio? LUZ_W:0;
     //Serial.println(switchBanio? "Luz baño encendido":"Baño apagado");
     mensajes[7] = switchBanio? "Luz baño encendido":"Baño apagado";
-    totalConsumo = totalConsumo + ledTV + ledLavadora + ledRadio + ledFreezer + luzDormitorio + luzSala + luzCocina + luzBanio;
-    float consumoEnKW = static_cast<float>(totalConsumo) / 1000;
-    Serial.println("Consumo en kW/s: "+String(consumoEnKW)); // para totalConsumo 372 sale 0.37
-    mensajes[8] = "Consumo en kW/s: " + std::to_string(consumoEnKW);
+    totalConsumo = ledTV + ledLavadora + ledRadio + ledFreezer + luzDormitorio + luzSala + luzCocina + luzBanio;
+    totalConsumoKW = static_cast<float>(totalConsumo) / 1000.0;
+    mensajes[8] = "Consumo en kW: " + std::to_string(totalConsumoKW);
+    // float consumoEnKW = static_cast<float>(totalConsumo) / 1000.0;
+    // Serial.println("Consumo en kW/s: "+String(consumoEnKW)); // para totalConsumo 372 sale 0.37
+    // mensajes[8] = "Consumo en kW/s: " + std::to_string(consumoEnKW);
   }
+
+  if (tiempoTranscurrido - lastConsumo >= T_CONSUMO_INTERVAL){
+    lastConsumo = tiempoTranscurrido;
+    Serial.print("Enviar totalConsumoKW a Adafruit: ");
+    Serial.println(totalConsumoKW);
+  }  
 
   if (tiempoTranscurrido - lastDHT >= DHT_INTERVAL){
     lastDHT = tiempoTranscurrido;
