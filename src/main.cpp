@@ -6,6 +6,9 @@
 #include <ArduinoJson.h>
 #include <UniversalTelegramBot.h>
 #include <WiFiClientSecure.h>
+#include "Adafruit_MQTT.h"
+#include "Adafruit_MQTT_Client.h"
+#include "secrets.h"
 
 // configuración para tv
 #define TV_PIN 34
@@ -64,8 +67,24 @@ const int cantidadTextos = sizeof(mensajes) / sizeof(mensajes[0]);
 #define password ""
 
 // Credenciales Telegram
-const String BOT_TOKEN = "8801456979:AAHI6J0vL3r0kyOSesYZaejQxxz641ylKlk";
-const String CHAT_ID = "519918100";
+const String BOT_TOKEN = TOKEN_TELEGRAM;
+const String CHAT_ID = ID_TELEGRAM;
+String msjBot;
+WiFiClientSecure clientS;
+UniversalTelegramBot bot(BOT_TOKEN, clientS);
+bool msjBotEnviado = false;
+
+// Condiguración de adafruit
+#define AIO_SERVER "io.adafruit.com"
+#define AIO_SERVERPORT 1883
+#define AIO_USERNAME USER_ADAFRUIT
+#define AIO_KEY KEY_ADAFRUIT
+// Configuración del cliente MQTT
+WiFiClient client;
+Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
+// Configurar los feeds
+Adafruit_MQTT_Publish totalConsumoKWFeed = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/sensor_datos");
+// Adafruit_MQTT_Subscribe ledFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/led_control");
 
 const unsigned long SENSOR_INTERVAL = 100;
 const unsigned long DHT_INTERVAL = 2000;
@@ -79,11 +98,6 @@ unsigned long lastOLED = 0;
 unsigned long lastTelegram = 0;
 unsigned long lastAdafruit = 0;
 
-String msjBot;
-WiFiClientSecure client;
-UniversalTelegramBot bot(BOT_TOKEN, client);
-bool msjBotEnviado = false;
-
 bool releON = true;
 
 void setup() {
@@ -93,7 +107,7 @@ void setup() {
   Serial.print("Conectando a wifi ...");
   WiFi.begin(ssid, password);
 
-  client.setCACert(TELEGRAM_CERTIFICATE_ROOT);
+  clientS.setCACert(TELEGRAM_CERTIFICATE_ROOT);
   
   while (WiFi.status() != WL_CONNECTED){
     delay(500);
@@ -129,6 +143,21 @@ void handleNewMessages(int numNewMessages){
       }
     }
   }
+}
+
+void MQTT_connect(){
+  int8_t ret;
+  if(mqtt.connected()){
+    return;
+  }
+  Serial.println("Conectando a MQTT ...");
+  while((ret = mqtt.connect())!=0){
+    Serial.println(mqtt.connectErrorString(ret));
+    Serial.println("Reintentando en 5 segundos ...");
+    mqtt.disconnect();
+    delay(5000);
+  }
+  Serial.println("MQTT Conectado!");
 }
 
 void loop() {
@@ -239,7 +268,7 @@ void loop() {
 
   if (tiempoTranscurrido - lastAdafruit >= ADAFRUIT_INTERVAL){
     lastAdafruit = tiempoTranscurrido;
-
+    MQTT_connect();
     Serial.println(mensajes[0].c_str());
     Serial.println(mensajes[1].c_str());
     Serial.println(mensajes[2].c_str());
@@ -250,5 +279,6 @@ void loop() {
     Serial.println(mensajes[7].c_str());
     Serial.println(mensajes[8].c_str());
     Serial.println(mensajes[9].c_str());
+    totalConsumoKWFeed.publish(totalConsumoKW);
   }  
 }
