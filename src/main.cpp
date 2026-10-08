@@ -207,144 +207,161 @@ void MQTT_connect(){
 }
 
 void loop() {
-
-  unsigned long tiempoTranscurrido = millis();
-
-  if (tiempoTranscurrido - lastSensor >= SENSOR_INTERVAL){
-    lastSensor = tiempoTranscurrido;
-    // obteniendo valores de los potenciómetros
-    uint32_t tv = analogRead(TV_PIN);
-    uint32_t lavadora = analogRead(LAVADORA_PIN);
-    uint32_t radio = analogRead(RADIO_PIN);
-    uint32_t freezer = analogRead(FREEZER_PIN);
+  if (releON){
+    unsigned long tiempoTranscurrido = millis();
   
-    // monitorización de consumo de la televicion
-    //Serial.println("consumo televisión: "+String(tv));
-    ultimoTV = map(tv, 0, 4095, 0, 150);
-    mensajes[0] = "consumo tv: "+std::to_string(ultimoTV);
-    analogWrite(LED_TV_PIN, ultimoTV);
+    if (tiempoTranscurrido - lastSensor >= SENSOR_INTERVAL){
+      lastSensor = tiempoTranscurrido;
+      // obteniendo valores de los potenciómetros
+      uint32_t tv = analogRead(TV_PIN);
+      uint32_t lavadora = analogRead(LAVADORA_PIN);
+      uint32_t radio = analogRead(RADIO_PIN);
+      uint32_t freezer = analogRead(FREEZER_PIN);
     
-    // monitorización de consumo de la lavadora
-    //Serial.println("consumo lavadora: "+String(lavadora));
-    ultimoLavadora = map(lavadora, 0, 4095, 0, 800);
-    mensajes[1] = "consumo lavadora: "+std::to_string(ultimoLavadora);
-    analogWrite(LED_LAVADORA_PIN, ultimoLavadora);
-  
-    // monitorización de consumo de la radio
-    //Serial.println("consumo radio: "+String(radio));
-    ultimoRadio = map(radio, 0, 4095, 0, 100);
-    mensajes[2] = "consumo radio: "+std::to_string(ultimoRadio);
-    analogWrite(LED_RADIO_PIN, ultimoRadio);
+      // monitorización de consumo de la televicion
+      //Serial.println("consumo televisión: "+String(tv));
+      ultimoTV = map(tv, 0, 4095, 0, 150);
+      mensajes[0] = "consumo tv: "+std::to_string(ultimoTV);
+      analogWrite(LED_TV_PIN, ultimoTV);
+      
+      // monitorización de consumo de la lavadora
+      //Serial.println("consumo lavadora: "+String(lavadora));
+      ultimoLavadora = map(lavadora, 0, 4095, 0, 800);
+      mensajes[1] = "consumo lavadora: "+std::to_string(ultimoLavadora);
+      analogWrite(LED_LAVADORA_PIN, ultimoLavadora);
     
-    // monitorización de consumo de la freezer
-    //Serial.println("consumo freezer: "+String(freezer));
-    ultimoFreezer = map(freezer, 0, 4095, 0, 400);
-    mensajes[3] = "consumo freezer: "+std::to_string(ultimoFreezer);
-    analogWrite(LED_FREEZER_PIN, ultimoFreezer);
-  
-    // monitorización de consumo de la dormitorio
-    int switchDormitorio = digitalRead(SWITCH_DORMITORIO);
-    int luzDormitorio = !switchDormitorio ? LUZ_W:0;
-    //Serial.println(switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado");
-    mensajes[4] = !switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado";
-  
-    // monitorización de consumo eléctrico de la cocina
-    int switchCocina = digitalRead(SWITCH_COCINA);
-    int luzCocina = !switchCocina? LUZ_W:0;
-    //Serial.println(switchCocina? "Luz cocina encendida":"Cocina apagada");
-    mensajes[5] = !switchCocina? "Luz cocina encendida":"Cocina apagada";
+      // monitorización de consumo de la radio
+      //Serial.println("consumo radio: "+String(radio));
+      ultimoRadio = map(radio, 0, 4095, 0, 100);
+      mensajes[2] = "consumo radio: "+std::to_string(ultimoRadio);
+      analogWrite(LED_RADIO_PIN, ultimoRadio);
+      
+      // monitorización de consumo de la freezer
+      //Serial.println("consumo freezer: "+String(freezer));
+      ultimoFreezer = map(freezer, 0, 4095, 0, 400);
+      mensajes[3] = "consumo freezer: "+std::to_string(ultimoFreezer);
+      analogWrite(LED_FREEZER_PIN, ultimoFreezer);
     
-    // monitorización de consumo eléctrico de la sala
-    int switchSala = digitalRead(SWITCH_SALA);
-    int luzSala = !switchSala? LUZ_W:0;
-    //Serial.println(switchSala? "Luz sala encendida":"Sala apagada");
-    mensajes[6] = !switchSala? "Luz sala encendida":"Sala apagada";
-  
-    // monitorización de consumo eléctrico del baño
-    int switchBanio = digitalRead(SWITCH_BANIO);
-    int luzBanio = !switchBanio? LUZ_W:0;
-    //Serial.println(switchBanio? "Luz baño encendido":"Baño apagado");
-    mensajes[7] = !switchBanio? "Luz baño encendido":"Baño apagado";
+      // monitorización de consumo de la dormitorio
+      int switchDormitorio = digitalRead(SWITCH_DORMITORIO);
+      int luzDormitorio = !switchDormitorio ? LUZ_W:0;
+      //Serial.println(switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado");
+      mensajes[4] = !switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado";
     
-    totalConsumo = ultimoTV + ultimoLavadora + ultimoRadio + ultimoFreezer + luzDormitorio + luzSala + luzCocina + luzBanio;
-    totalConsumoKW = static_cast<float>(totalConsumo) / 1000.0;
-    mensajes[8] = "Consumo en kW: " + std::to_string(totalConsumoKW);
-
-    // ultimoTV = tv;
-    // ultimoLavadora = lavadora;
-    // ultimoRadio = radio;
-    // ultimoFreezer = freezer;
-    ultimoSwitchDormitorio = switchDormitorio;
-    ultimoSwitchCocina = switchCocina;
-    ultimoSwitchSala = switchSala;
-    ultimoSwitchBanio = switchBanio;
-  }
-
-  if (tiempoTranscurrido - lastDHT >= DHT_INTERVAL){
-    lastDHT = tiempoTranscurrido;
-    float temperatura = dht.readTemperature();
-    if(!isnan(temperatura)){
-      mensajes[9] = "Temperatura: " + std::to_string(temperatura);
-      if (temperatura > 50){
-        if (!msjBotEnviado){
-          Serial.println("Envío de alerta al telegram");
-          String keyboardJson = "[[{\"text\":\"Apagar relé\",\"callback_data\":\"APAGAR_RELE\"}]]";
-          bot.sendMessageWithInlineKeyboard(CHAT_ID, "🚨 Temperatura inusualmente alta", "", keyboardJson);
-          msjBotEnviado = true;
+      // monitorización de consumo eléctrico de la cocina
+      int switchCocina = digitalRead(SWITCH_COCINA);
+      int luzCocina = !switchCocina? LUZ_W:0;
+      //Serial.println(switchCocina? "Luz cocina encendida":"Cocina apagada");
+      mensajes[5] = !switchCocina? "Luz cocina encendida":"Cocina apagada";
+      
+      // monitorización de consumo eléctrico de la sala
+      int switchSala = digitalRead(SWITCH_SALA);
+      int luzSala = !switchSala? LUZ_W:0;
+      //Serial.println(switchSala? "Luz sala encendida":"Sala apagada");
+      mensajes[6] = !switchSala? "Luz sala encendida":"Sala apagada";
+    
+      // monitorización de consumo eléctrico del baño
+      int switchBanio = digitalRead(SWITCH_BANIO);
+      int luzBanio = !switchBanio? LUZ_W:0;
+      //Serial.println(switchBanio? "Luz baño encendido":"Baño apagado");
+      mensajes[7] = !switchBanio? "Luz baño encendido":"Baño apagado";
+      
+      totalConsumo = ultimoTV + ultimoLavadora + ultimoRadio + ultimoFreezer + luzDormitorio + luzSala + luzCocina + luzBanio;
+      totalConsumoKW = static_cast<float>(totalConsumo) / 1000.0;
+      mensajes[8] = "Consumo en kW: " + std::to_string(totalConsumoKW);
+  
+      // ultimoTV = tv;
+      // ultimoLavadora = lavadora;
+      // ultimoRadio = radio;
+      // ultimoFreezer = freezer;
+      ultimoSwitchDormitorio = switchDormitorio;
+      ultimoSwitchCocina = switchCocina;
+      ultimoSwitchSala = switchSala;
+      ultimoSwitchBanio = switchBanio;
+    }
+  
+    if (tiempoTranscurrido - lastDHT >= DHT_INTERVAL){
+      lastDHT = tiempoTranscurrido;
+      float temperatura = dht.readTemperature();
+      if(!isnan(temperatura)){
+        mensajes[9] = "Temperatura: " + std::to_string(temperatura);
+        if (temperatura > 50){
+          if (!msjBotEnviado){
+            Serial.println("Envío de alerta al telegram");
+            String keyboardJson = "[[{\"text\":\"Apagar relé\",\"callback_data\":\"APAGAR_RELE\"}]]";
+            bot.sendMessageWithInlineKeyboard(CHAT_ID, "🚨 Temperatura inusualmente alta", "", keyboardJson);
+            msjBotEnviado = true;
+          }
         }
       }
     }
-  }
-
-  if(tiempoTranscurrido - lastTelegram >= TELEGRAM_INTERVAL){
-    lastTelegram = tiempoTranscurrido;
-    int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
-    while(numNewMessages){
-      Serial.println("Procesando nuevos mensajes...");
-      handleNewMessages(numNewMessages);
-      numNewMessages = bot.getUpdates(bot.last_message_received + 1);
-    }
-  }
-
-  if (tiempoTranscurrido - lastOLED >= OLED_INTERVAL){
-    lastOLED = tiempoTranscurrido;
-    oled.clearBuffer();
-    int posicionY = 12;
-    // recorrido del arreglo para mostrarlo en el oled
-    for (int i = 0; i < cantidadTextos; i++) {
-      oled.drawStr(0, posicionY, mensajes[i].c_str());
-      posicionY += 12;
-      if (posicionY > 124) {
-        break;
+  
+    if(tiempoTranscurrido - lastTelegram >= TELEGRAM_INTERVAL){
+      lastTelegram = tiempoTranscurrido;
+      int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+      while(numNewMessages){
+        Serial.println("Procesando nuevos mensajes...");
+        handleNewMessages(numNewMessages);
+        numNewMessages = bot.getUpdates(bot.last_message_received + 1);
       }
     }
-    oled.sendBuffer();
-  }
+  
+    if (tiempoTranscurrido - lastOLED >= OLED_INTERVAL){
+      lastOLED = tiempoTranscurrido;
+      oled.clearBuffer();
+      int posicionY = 12;
+      // recorrido del arreglo para mostrarlo en el oled
+      for (int i = 0; i < cantidadTextos; i++) {
+        oled.drawStr(0, posicionY, mensajes[i].c_str());
+        posicionY += 12;
+        if (posicionY > 124) {
+          break;
+        }
+      }
+      oled.sendBuffer();
+    }
+  
+    if (tiempoTranscurrido - lastAdafruit >= ADAFRUIT_INTERVAL){
+      lastAdafruit = tiempoTranscurrido;
+      MQTT_connect();
+      Serial.println(mensajes[0].c_str());
+      Serial.println(mensajes[1].c_str());
+      Serial.println(mensajes[2].c_str());
+      Serial.println(mensajes[3].c_str());
+      Serial.println(mensajes[4].c_str());
+      Serial.println(mensajes[5].c_str());
+      Serial.println(mensajes[6].c_str());
+      Serial.println(mensajes[7].c_str());
+      Serial.println(mensajes[8].c_str());
+      Serial.println(mensajes[9].c_str());
+      // Serial.println("Enviando a adafruit");
+      // totalConsumoKWFeed.publish(totalConsumoKW);
+      enviarFeed("tv", ultimoTV);
+      enviarFeed("lavadora", ultimoLavadora);
+      enviarFeed("radio", ultimoRadio);
+      enviarFeed("freezer", ultimoFreezer);
+      // enviarFeed("temperatura", ultimaTemperatura);
+      // enviarFeed("luz-dormitorio", ultimoSwitchDormitorio ? 1 : 0);
+      // enviarFeed("luz-cocina", ultimoSwitchCocina ? 1 : 0);
+      // enviarFeed("luz-sala", ultimoSwitchSala ? 1 : 0);
+      // enviarFeed("luz-bano", ultimoSwitchBanio ? 1 : 0);
+      enviarFeed("consumo-total", totalConsumoKW);
+    }
+  } else {
+    ultimoTV = 0;
+    ultimoLavadora = 0;
+    ultimoRadio = 0;
+    ultimoFreezer = 0;
+    ultimoSwitchDormitorio = 0;
+    ultimoSwitchCocina = 0;
+    ultimoSwitchSala = 0;
+    ultimoSwitchBanio = 0;
+    ultimaTemperatura = 0;
 
-  if (tiempoTranscurrido - lastAdafruit >= ADAFRUIT_INTERVAL){
-    lastAdafruit = tiempoTranscurrido;
-    MQTT_connect();
-    Serial.println(mensajes[0].c_str());
-    Serial.println(mensajes[1].c_str());
-    Serial.println(mensajes[2].c_str());
-    Serial.println(mensajes[3].c_str());
-    Serial.println(mensajes[4].c_str());
-    Serial.println(mensajes[5].c_str());
-    Serial.println(mensajes[6].c_str());
-    Serial.println(mensajes[7].c_str());
-    Serial.println(mensajes[8].c_str());
-    Serial.println(mensajes[9].c_str());
-    // Serial.println("Enviando a adafruit");
-    // totalConsumoKWFeed.publish(totalConsumoKW);
-    enviarFeed("tv", ultimoTV);
-    enviarFeed("lavadora", ultimoLavadora);
-    enviarFeed("radio", ultimoRadio);
-    enviarFeed("freezer", ultimoFreezer);
-    // enviarFeed("temperatura", ultimaTemperatura);
-    // enviarFeed("luz-dormitorio", ultimoSwitchDormitorio ? 1 : 0);
-    // enviarFeed("luz-cocina", ultimoSwitchCocina ? 1 : 0);
-    // enviarFeed("luz-sala", ultimoSwitchSala ? 1 : 0);
-    // enviarFeed("luz-bano", ultimoSwitchBanio ? 1 : 0);
-    enviarFeed("consumo-total", totalConsumoKW);
-  }  
+    oled.clearBuffer();
+    int posicionY = 12;
+    oled.drawStr(0, posicionY, "APAGADO DE EMERGENCIA");
+    oled.sendBuffer();
+    delay(500);
+  }
 }
