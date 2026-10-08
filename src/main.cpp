@@ -84,7 +84,8 @@ bool msjBotEnviado = false;
 WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
 // Configurar los feeds
-// String feed = String(AIO_USERNAME) + "/feeds/sensor_datos";
+//String feed = String(AIO_USERNAME) + "/feeds/sensor_datos";
+// String feed = String(AIO_USERNAME) + "/feeds/monitoreo-inteligente.consumo-total";
 // Adafruit_MQTT_Publish totalConsumoKWFeed = Adafruit_MQTT_Publish(&mqtt, feed.c_str());
 // Adafruit_MQTT_Subscribe ledFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/led_control");
 
@@ -98,7 +99,6 @@ unsigned long lastSensor = 0;
 unsigned long lastDHT = 0;
 unsigned long lastOLED = 0;
 unsigned long lastTelegram = 0;
-unsigned long lastAdafruit = 0;
 unsigned long lastAdafruit = 0;
 
 uint32_t ultimoTV = 0;
@@ -144,9 +144,10 @@ void setup() {
 }
 
 void enviarFeed(String feedKey, float valor){
-  String rutaFeed = String(AIO_USERNAME) + "/feeds/" + feedKey;
+  String rutaFeed = String(AIO_USERNAME) + "/feeds/" + String(GROUP_ADAFRUIT) + feedKey;
   Adafruit_MQTT_Publish feed = Adafruit_MQTT_Publish(&mqtt, rutaFeed.c_str());
   feed.publish(valor);
+  delay(150);
 }
 // void enviarFeed(String feedKey, String valor) {
 //   WiFiClientSecure clienteSeguro;
@@ -265,6 +266,15 @@ void loop() {
     totalConsumo = ledTV + ledLavadora + ledRadio + ledFreezer + luzDormitorio + luzSala + luzCocina + luzBanio;
     totalConsumoKW = static_cast<float>(totalConsumo) / 1000.0;
     mensajes[8] = "Consumo en kW: " + std::to_string(totalConsumoKW);
+
+    ultimoTV = tv;
+    ultimoLavadora = lavadora;
+    ultimoRadio = radio;
+    ultimoFreezer = freezer;
+    ultimoSwitchDormitorio = switchDormitorio;
+    ultimoSwitchCocina = switchCocina;
+    ultimoSwitchSala = switchSala;
+    ultimoSwitchBanio = switchBanio;
   }
 
   if (tiempoTranscurrido - lastDHT >= DHT_INTERVAL){
@@ -321,7 +331,17 @@ void loop() {
     Serial.println(mensajes[7].c_str());
     Serial.println(mensajes[8].c_str());
     Serial.println(mensajes[9].c_str());
-    //totalConsumoKWFeed.publish(totalConsumoKW);
-    enviarFeed("sensor_datos",totalConsumoKW);
+    // Serial.println("Enviando a adafruit");
+    // totalConsumoKWFeed.publish(totalConsumoKW);
+    enviarFeed("tv", ultimoTV);
+    enviarFeed("lavadora", ultimoLavadora);
+    enviarFeed("radio", ultimoRadio);
+    enviarFeed("freezer", ultimoFreezer);
+    // enviarFeed("temperatura", ultimaTemperatura);
+    // enviarFeed("luz-dormitorio", ultimoSwitchDormitorio ? 1 : 0);
+    // enviarFeed("luz-cocina", ultimoSwitchCocina ? 1 : 0);
+    // enviarFeed("luz-sala", ultimoSwitchSala ? 1 : 0);
+    // enviarFeed("luz-bano", ultimoSwitchBanio ? 1 : 0);
+    enviarFeed("consumo-total", totalConsumoKW);
   }  
 }
