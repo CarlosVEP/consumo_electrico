@@ -217,27 +217,27 @@ void loop() {
   
     // monitorización de consumo de la televicion
     //Serial.println("consumo televisión: "+String(tv));
-    mensajes[0] = "consumo tv: "+std::to_string(tv);
-    int ledTV = map(tv, 0, 4095, 0, 150);
-    analogWrite(LED_TV_PIN, ledTV);
+    ultimoTV = map(tv, 0, 4095, 0, 150);
+    mensajes[0] = "consumo tv: "+std::to_string(ultimoTV);
+    analogWrite(LED_TV_PIN, ultimoTV);
     
     // monitorización de consumo de la lavadora
     //Serial.println("consumo lavadora: "+String(lavadora));
-    mensajes[1] = "consumo lavadora: "+std::to_string(lavadora);
-    int ledLavadora = map(lavadora, 0, 4095, 0, 800);
-    analogWrite(LED_LAVADORA_PIN, ledLavadora);
+    ultimoLavadora = map(lavadora, 0, 4095, 0, 800);
+    mensajes[1] = "consumo lavadora: "+std::to_string(ultimoLavadora);
+    analogWrite(LED_LAVADORA_PIN, ultimoLavadora);
   
     // monitorización de consumo de la radio
     //Serial.println("consumo radio: "+String(radio));
-    mensajes[2] = "consumo radio: "+std::to_string(radio);
-    int ledRadio = map(radio, 0, 4095, 0, 100);
-    analogWrite(LED_RADIO_PIN, ledRadio);
+    ultimoRadio = map(radio, 0, 4095, 0, 100);
+    mensajes[2] = "consumo radio: "+std::to_string(ultimoRadio);
+    analogWrite(LED_RADIO_PIN, ultimoRadio);
     
     // monitorización de consumo de la freezer
     //Serial.println("consumo freezer: "+String(freezer));
-    mensajes[3] = "consumo freezer: "+std::to_string(freezer);
-    int ledFreezer = map(freezer, 0, 4095, 0, 400);
-    analogWrite(LED_FREEZER_PIN, ledFreezer);
+    ultimoFreezer = map(freezer, 0, 4095, 0, 400);
+    mensajes[3] = "consumo freezer: "+std::to_string(ultimoFreezer);
+    analogWrite(LED_FREEZER_PIN, ultimoFreezer);
   
     // monitorización de consumo de la dormitorio
     int switchDormitorio = digitalRead(SWITCH_DORMITORIO);
@@ -263,14 +263,14 @@ void loop() {
     //Serial.println(switchBanio? "Luz baño encendido":"Baño apagado");
     mensajes[7] = !switchBanio? "Luz baño encendido":"Baño apagado";
     
-    totalConsumo = ledTV + ledLavadora + ledRadio + ledFreezer + luzDormitorio + luzSala + luzCocina + luzBanio;
+    totalConsumo = ultimoTV + ultimoLavadora + ultimoRadio + ultimoFreezer + luzDormitorio + luzSala + luzCocina + luzBanio;
     totalConsumoKW = static_cast<float>(totalConsumo) / 1000.0;
     mensajes[8] = "Consumo en kW: " + std::to_string(totalConsumoKW);
 
-    ultimoTV = tv;
-    ultimoLavadora = lavadora;
-    ultimoRadio = radio;
-    ultimoFreezer = freezer;
+    // ultimoTV = tv;
+    // ultimoLavadora = lavadora;
+    // ultimoRadio = radio;
+    // ultimoFreezer = freezer;
     ultimoSwitchDormitorio = switchDormitorio;
     ultimoSwitchCocina = switchCocina;
     ultimoSwitchSala = switchSala;
