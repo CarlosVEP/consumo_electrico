@@ -79,24 +79,37 @@ bool msjBotEnviado = false;
 #define AIO_SERVERPORT 1883
 #define AIO_USERNAME USER_ADAFRUIT
 #define AIO_KEY KEY_ADAFRUIT
+#define AIO_GRUPO GROUP_ADAFRUIT
 // Configuración del cliente MQTT
 WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
 // Configurar los feeds
-Adafruit_MQTT_Publish totalConsumoKWFeed = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/sensor_datos");
+String feed = String(AIO_USERNAME) + "/feeds/sensor_datos";
+Adafruit_MQTT_Publish totalConsumoKWFeed = Adafruit_MQTT_Publish(&mqtt, feed.c_str());
 // Adafruit_MQTT_Subscribe ledFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/led_control");
 
-const unsigned long SENSOR_INTERVAL = 100;
+const unsigned long SENSOR_INTERVAL = 500;
 const unsigned long DHT_INTERVAL = 2000;
 const unsigned long OLED_INTERVAL = 500;
-const unsigned long TELEGRAM_INTERVAL = 1000;
-const unsigned long ADAFRUIT_INTERVAL = 5000;
+const unsigned long TELEGRAM_INTERVAL = 5000;
+const unsigned long ADAFRUIT_INTERVAL = 10000;
 
 unsigned long lastSensor = 0;
 unsigned long lastDHT = 0;
 unsigned long lastOLED = 0;
 unsigned long lastTelegram = 0;
 unsigned long lastAdafruit = 0;
+unsigned long lastAdafruit = 0;
+
+uint32_t ultimoTV = 0;
+uint32_t ultimoLavadora = 0;
+uint32_t ultimoRadio = 0;
+uint32_t ultimoFreezer = 0;
+int ultimoSwitchDormitorio = 0;
+int ultimoSwitchCocina = 0;
+int ultimoSwitchSala = 0;
+int ultimoSwitchBanio = 0;
+float ultimaTemperatura = 0;
 
 bool releON = true;
 
@@ -129,6 +142,30 @@ void setup() {
 
   oled.clearBuffer();
 }
+
+// void enviarFeed(String feedKey, String valor) {
+//   WiFiClientSecure clienteSeguro;
+//   clienteSeguro.setInsecure(); // evita fallos de certificado HTTPS en la simulación
+
+//   HTTPClient http;
+//   http.setTimeout(8000); // más tiempo de espera para evitar el error -1 por conexiones lentas
+//   String url = "https://io.adafruit.com/api/v2/" + String(AIO_USERNAME) +
+//                "/feeds/" + AIO_GRUPO + "." + feedKey + "/data";
+
+//   http.begin(clienteSeguro, url);
+//   http.addHeader("Content-Type", "application/json");
+//   http.addHeader("X-AIO-Key", AIO_KEY);
+
+//   String payload = "{\"value\":\"" + valor + "\"}";
+//   int codigo = http.POST(payload);
+
+//   if (codigo == 200 || codigo == 201) {
+//     Serial.println("OK -> " + feedKey + " = " + valor);
+//   } else {
+//     Serial.println("Error al enviar " + feedKey + ": " + String(codigo));
+//   }
+//   http.end();
+// }
 
 void handleNewMessages(int numNewMessages){
   for(int i=0; i<numNewMessages; i++){
