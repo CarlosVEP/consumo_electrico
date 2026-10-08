@@ -146,7 +146,10 @@ void setup() {
 void enviarFeed(String feedKey, float valor){
   String rutaFeed = String(AIO_USERNAME) + "/feeds/" + String(GROUP_ADAFRUIT) + feedKey;
   Adafruit_MQTT_Publish feed = Adafruit_MQTT_Publish(&mqtt, rutaFeed.c_str());
-  feed.publish(valor);
+  if(!feed.publish(valor)){
+    Serial.print("Error al enviar el feed: ");
+    Serial.println(feedKey);
+  }
   delay(150);
 }
 // void enviarFeed(String feedKey, String valor) {
