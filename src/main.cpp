@@ -84,8 +84,8 @@ bool msjBotEnviado = false;
 WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
 // Configurar los feeds
-String feed = String(AIO_USERNAME) + "/feeds/sensor_datos";
-Adafruit_MQTT_Publish totalConsumoKWFeed = Adafruit_MQTT_Publish(&mqtt, feed.c_str());
+// String feed = String(AIO_USERNAME) + "/feeds/sensor_datos";
+// Adafruit_MQTT_Publish totalConsumoKWFeed = Adafruit_MQTT_Publish(&mqtt, feed.c_str());
 // Adafruit_MQTT_Subscribe ledFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/led_control");
 
 const unsigned long SENSOR_INTERVAL = 500;
@@ -143,6 +143,11 @@ void setup() {
   oled.clearBuffer();
 }
 
+void enviarFeed(String feedKey, float valor){
+  String rutaFeed = String(AIO_USERNAME) + "/feeds/" + feedKey;
+  Adafruit_MQTT_Publish feed = Adafruit_MQTT_Publish(&mqtt, rutaFeed.c_str());
+  feed.publish(valor);
+}
 // void enviarFeed(String feedKey, String valor) {
 //   WiFiClientSecure clienteSeguro;
 //   clienteSeguro.setInsecure(); // evita fallos de certificado HTTPS en la simulación
@@ -316,6 +321,7 @@ void loop() {
     Serial.println(mensajes[7].c_str());
     Serial.println(mensajes[8].c_str());
     Serial.println(mensajes[9].c_str());
-    totalConsumoKWFeed.publish(totalConsumoKW);
+    //totalConsumoKWFeed.publish(totalConsumoKW);
+    enviarFeed("sensor_datos",totalConsumoKW);
   }  
 }
