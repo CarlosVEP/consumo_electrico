@@ -77,7 +77,7 @@ bool msjBotEnviado = false;
 #define AIO_SERVERPORT 1883
 #define AIO_USERNAME USER_ADAFRUIT
 #define AIO_KEY KEY_ADAFRUIT
-#define AIO_GRUPO GROUP_ADAFRUIT
+#define AIO_GRUPO "monitoreo-inteligente."
 // Configuración del cliente MQTT
 WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
@@ -137,7 +137,7 @@ void setup() {
 }
 
 void enviarFeed(String feedKey, float valor){
-  String rutaFeed = String(AIO_USERNAME) + "/feeds/" + String(GROUP_ADAFRUIT) + feedKey;
+  String rutaFeed = String(AIO_USERNAME) + "/feeds/" + String(AIO_GRUPO) + feedKey;
   Adafruit_MQTT_Publish feed = Adafruit_MQTT_Publish(&mqtt, rutaFeed.c_str());
   if(!feed.publish(valor)){
     Serial.print("Error al enviar el feed: ");
