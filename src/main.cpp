@@ -51,8 +51,6 @@ DHT dht(DHT_PIN,DHTTYPE);
 const int LUZ_W = 12;
 int totalConsumo = 0;
 float totalConsumoKW = 0.0;
-// const unsigned long T_CONSUMO_INTERVAL = 5000;
-// unsigned long lastConsumo = 0;
 
 // Grove OLED SH1107
 // 128 x 128 píxeles, I2C
@@ -83,11 +81,6 @@ bool msjBotEnviado = false;
 // Configuración del cliente MQTT
 WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
-// Configurar los feeds
-//String feed = String(AIO_USERNAME) + "/feeds/sensor_datos";
-// String feed = String(AIO_USERNAME) + "/feeds/monitoreo-inteligente.consumo-total";
-// Adafruit_MQTT_Publish totalConsumoKWFeed = Adafruit_MQTT_Publish(&mqtt, feed.c_str());
-// Adafruit_MQTT_Subscribe ledFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/led_control");
 
 const unsigned long SENSOR_INTERVAL = 500;
 const unsigned long DHT_INTERVAL = 2000;
@@ -152,29 +145,6 @@ void enviarFeed(String feedKey, float valor){
   }
   delay(150);
 }
-// void enviarFeed(String feedKey, String valor) {
-//   WiFiClientSecure clienteSeguro;
-//   clienteSeguro.setInsecure(); // evita fallos de certificado HTTPS en la simulación
-
-//   HTTPClient http;
-//   http.setTimeout(8000); // más tiempo de espera para evitar el error -1 por conexiones lentas
-//   String url = "https://io.adafruit.com/api/v2/" + String(AIO_USERNAME) +
-//                "/feeds/" + AIO_GRUPO + "." + feedKey + "/data";
-
-//   http.begin(clienteSeguro, url);
-//   http.addHeader("Content-Type", "application/json");
-//   http.addHeader("X-AIO-Key", AIO_KEY);
-
-//   String payload = "{\"value\":\"" + valor + "\"}";
-//   int codigo = http.POST(payload);
-
-//   if (codigo == 200 || codigo == 201) {
-//     Serial.println("OK -> " + feedKey + " = " + valor);
-//   } else {
-//     Serial.println("Error al enviar " + feedKey + ": " + String(codigo));
-//   }
-//   http.end();
-// }
 
 void handleNewMessages(int numNewMessages){
   for(int i=0; i<numNewMessages; i++){
@@ -219,25 +189,21 @@ void loop() {
       uint32_t freezer = analogRead(FREEZER_PIN);
     
       // monitorización de consumo de la televicion
-      //Serial.println("consumo televisión: "+String(tv));
       ultimoTV = map(tv, 0, 4095, 0, 150);
       mensajes[0] = "consumo tv: "+std::to_string(ultimoTV);
       analogWrite(LED_TV_PIN, ultimoTV);
       
       // monitorización de consumo de la lavadora
-      //Serial.println("consumo lavadora: "+String(lavadora));
       ultimoLavadora = map(lavadora, 0, 4095, 0, 800);
       mensajes[1] = "consumo lavadora: "+std::to_string(ultimoLavadora);
       analogWrite(LED_LAVADORA_PIN, ultimoLavadora);
     
       // monitorización de consumo de la radio
-      //Serial.println("consumo radio: "+String(radio));
       ultimoRadio = map(radio, 0, 4095, 0, 100);
       mensajes[2] = "consumo radio: "+std::to_string(ultimoRadio);
       analogWrite(LED_RADIO_PIN, ultimoRadio);
       
       // monitorización de consumo de la freezer
-      //Serial.println("consumo freezer: "+String(freezer));
       ultimoFreezer = map(freezer, 0, 4095, 0, 400);
       mensajes[3] = "consumo freezer: "+std::to_string(ultimoFreezer);
       analogWrite(LED_FREEZER_PIN, ultimoFreezer);
@@ -245,35 +211,27 @@ void loop() {
       // monitorización de consumo de la dormitorio
       int switchDormitorio = digitalRead(SWITCH_DORMITORIO);
       int luzDormitorio = !switchDormitorio ? LUZ_W:0;
-      //Serial.println(switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado");
       mensajes[4] = !switchDormitorio? "Luz dormitorio encendido":"Dormitorio apagado";
     
       // monitorización de consumo eléctrico de la cocina
       int switchCocina = digitalRead(SWITCH_COCINA);
       int luzCocina = !switchCocina? LUZ_W:0;
-      //Serial.println(switchCocina? "Luz cocina encendida":"Cocina apagada");
       mensajes[5] = !switchCocina? "Luz cocina encendida":"Cocina apagada";
       
       // monitorización de consumo eléctrico de la sala
       int switchSala = digitalRead(SWITCH_SALA);
       int luzSala = !switchSala? LUZ_W:0;
-      //Serial.println(switchSala? "Luz sala encendida":"Sala apagada");
       mensajes[6] = !switchSala? "Luz sala encendida":"Sala apagada";
     
       // monitorización de consumo eléctrico del baño
       int switchBanio = digitalRead(SWITCH_BANIO);
       int luzBanio = !switchBanio? LUZ_W:0;
-      //Serial.println(switchBanio? "Luz baño encendido":"Baño apagado");
       mensajes[7] = !switchBanio? "Luz baño encendido":"Baño apagado";
       
       totalConsumo = ultimoTV + ultimoLavadora + ultimoRadio + ultimoFreezer + luzDormitorio + luzSala + luzCocina + luzBanio;
       totalConsumoKW = static_cast<float>(totalConsumo) / 1000.0;
       mensajes[8] = "Consumo en kW: " + std::to_string(totalConsumoKW);
   
-      // ultimoTV = tv;
-      // ultimoLavadora = lavadora;
-      // ultimoRadio = radio;
-      // ultimoFreezer = freezer;
       ultimoSwitchDormitorio = switchDormitorio;
       ultimoSwitchCocina = switchCocina;
       ultimoSwitchSala = switchSala;
@@ -324,18 +282,6 @@ void loop() {
     if (tiempoTranscurrido - lastAdafruit >= ADAFRUIT_INTERVAL){
       lastAdafruit = tiempoTranscurrido;
       MQTT_connect();
-      Serial.println(mensajes[0].c_str());
-      Serial.println(mensajes[1].c_str());
-      Serial.println(mensajes[2].c_str());
-      Serial.println(mensajes[3].c_str());
-      Serial.println(mensajes[4].c_str());
-      Serial.println(mensajes[5].c_str());
-      Serial.println(mensajes[6].c_str());
-      Serial.println(mensajes[7].c_str());
-      Serial.println(mensajes[8].c_str());
-      Serial.println(mensajes[9].c_str());
-      // Serial.println("Enviando a adafruit");
-      // totalConsumoKWFeed.publish(totalConsumoKW);
       enviarFeed("tv", ultimoTV);
       enviarFeed("lavadora", ultimoLavadora);
       enviarFeed("radio", ultimoRadio);
