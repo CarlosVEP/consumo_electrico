@@ -240,10 +240,10 @@ void loop() {
   
     if (tiempoTranscurrido - lastDHT >= DHT_INTERVAL){
       lastDHT = tiempoTranscurrido;
-      float temperatura = dht.readTemperature();
-      if(!isnan(temperatura)){
-        mensajes[9] = "Temperatura: " + std::to_string(temperatura);
-        if (temperatura > 50){
+      ultimaTemperatura = dht.readTemperature();
+      if(!isnan(ultimaTemperatura)){
+        mensajes[9] = "Temperatura: " + std::to_string(ultimaTemperatura);
+        if (ultimaTemperatura > 50){
           if (!msjBotEnviado){
             Serial.println("Envío de alerta al telegram");
             String keyboardJson = "[[{\"text\":\"Apagar relé\",\"callback_data\":\"APAGAR_RELE\"}]]";
