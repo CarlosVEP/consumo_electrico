@@ -232,10 +232,10 @@ void loop() {
       totalConsumoKW = static_cast<float>(totalConsumo) / 1000.0;
       mensajes[8] = "Consumo en kW: " + std::to_string(totalConsumoKW);
   
-      ultimoSwitchDormitorio = switchDormitorio;
-      ultimoSwitchCocina = switchCocina;
-      ultimoSwitchSala = switchSala;
-      ultimoSwitchBanio = switchBanio;
+      ultimoSwitchDormitorio = !switchDormitorio;
+      ultimoSwitchCocina = !switchCocina;
+      ultimoSwitchSala = !switchSala;
+      ultimoSwitchBanio = !switchBanio;
     }
   
     if (tiempoTranscurrido - lastDHT >= DHT_INTERVAL){
@@ -287,10 +287,10 @@ void loop() {
       enviarFeed("radio", ultimoRadio);
       enviarFeed("freezer", ultimoFreezer);
       // enviarFeed("temperatura", ultimaTemperatura);
-      // enviarFeed("luz-dormitorio", ultimoSwitchDormitorio ? 1 : 0);
-      // enviarFeed("luz-cocina", ultimoSwitchCocina ? 1 : 0);
-      // enviarFeed("luz-sala", ultimoSwitchSala ? 1 : 0);
-      // enviarFeed("luz-bano", ultimoSwitchBanio ? 1 : 0);
+      // enviarFeed("luz-dormitorio", ultimoSwitchDormitorio);
+      // enviarFeed("luz-cocina", ultimoSwitchCocina);
+      // enviarFeed("luz-sala", ultimoSwitchSala);
+      // enviarFeed("luz-bano", ultimoSwitchBanio);
       enviarFeed("consumo-total", totalConsumoKW);
     }
   } else {
