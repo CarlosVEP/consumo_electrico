@@ -86,7 +86,7 @@ const unsigned long SENSOR_INTERVAL = 500;
 const unsigned long DHT_INTERVAL = 2000;
 const unsigned long OLED_INTERVAL = 500;
 const unsigned long TELEGRAM_INTERVAL = 5000;
-const unsigned long ADAFRUIT_INTERVAL = 10000;
+const unsigned long ADAFRUIT_INTERVAL = 30000;
 
 unsigned long lastSensor = 0;
 unsigned long lastDHT = 0;
